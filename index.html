@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Suivi</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Arial', sans-serif;
+            animation: fadeIn 2s ease-in-out;
+            overflow: hidden; /* Empêche le défilement */
+            user-select: none; /* Empêche la sélection de texte et d'images */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .battery-container, .date-container, .time-container {
+            width: 90%;
+            max-width: 300px;
+            height: 60px;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            position: relative;
+            margin-top: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            animation: slideIn 1s ease-out;
+            background-color: rgba(0, 0, 0, 0.7); /* Fond semi-transparent */
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-100px); }
+            to { transform: translateY(0); }
+        }
+        .battery-level {
+            height: 100%;
+            background-color: green;
+            width: 60%; /* Niveau de batterie initial */
+            border-radius: 10px 0 0 10px;
+            transition: width 0.5s, background-color 0.5s;
+        }
+        .battery-text, .date-text, .time-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .info-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            padding: 20px;
+            margin-top: 20px;
+            animation: slideUp 1s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); }
+            to { transform: translateY(0); }
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: bounceIn 1s ease-out;
+        }
+        @keyframes bounceIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .info-item img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+        }
+        .info-item span {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .background-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -1;
+            transition: opacity 2s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-transition" id="backgroundImage"></div>
+
+    <div class="battery-container">
+        <div class="battery-level" id="batteryLevel"></div>
+        <div class="battery-text" id="batteryText">60%</div>
+    </div>
+
+    <div class="info-container">
+        <div class="date-container">
+            <div class="date-text" id="currentDate">29 Dec</div>
+        </div>
+        <div class="time-container">
+            <div class="time-text" id="currentTime">08:08</div>
+        </div>
+    </div>
+
+    <script>
+        function updateBatteryLevel(level, charging) {
+            const batteryLevel = document.getElementById('batteryLevel');
+            const batteryText = document.getElementById('batteryText');
+            batteryLevel.style.width = level + '%';
+            batteryText.textContent = level + '%';
+            batteryLevel.style.backgroundColor = charging ? 'blue' : (level > 20 ? 'green' : 'red');
+        }
+
+        navigator.getBattery().then(function(battery) {
+            function updateAllBatteryInfo() {
+                updateBatteryLevel(battery.level * 100, battery.charging);
+            }
+            updateAllBatteryInfo();
+
+            battery.addEventListener('levelchange', function() {
+                updateBatteryLevel(battery.level * 100, battery.charging);
+            });
+
+            battery.addEventListener('chargingchange', function() {
+                updateBatteryLevel(battery.level * 100, battery.charging);
+            });
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateOptions = { day: '2-digit', month: 'short' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', weekday: 'short' };
+
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('fr-FR', dateOptions);
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('fr-FR', timeOptions);
+
+            // Changer l'image de fond en fonction de l'heure
+            const hour = now.getHours();
+            let backgroundImage;
+            if (hour >= 7 && hour < 10) {
+                backgroundImage = 'https://th.bing.com/th/id/OIP.3c8hwrq0S2Wpme3pti_sNwHaNK?rs=1&pid=ImgDetMain';
+            } else if (hour >= 10 && hour < 18) {
+                backgroundImage = 'https://th.bing.com/th/id/R.c6ef1c0136f84e8f2356ca26cd1d5bb3?rik=PJQN3Zj%2fF9qXsA&pid=ImgRaw&r=0';
+            } else if (hour >= 18 && hour < 20) {
+                backgroundImage = 'https://i.pinimg.com/736x/d8/2d/f9/d82df90941901a076c8c0d5130a83a8c.jpg';
+            } else {
+                backgroundImage = 'https://i.pinimg.com/originals/dc/f9/e1/dcf9e169ec4a86b2b9a49209a0d79906.jpg';
+            }
+            const bgElement = document.getElementById('backgroundImage');
+            bgElement.style.opacity = 0.5;
+            setTimeout(() => {
+                bgElement.style.backgroundImage = `url(${backgroundImage})`;
+                bgElement.style.opacity = 1;
+            }, 1000);
+        }
+
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+    </script>
+</body>
+</html>
